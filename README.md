@@ -52,6 +52,11 @@ Or copy the file yourself:
 
 Restart the CLI after you install.
 
+## Quality
+
+- **Gold examples** (`examples/`): hand-written reference prompts. Two are built into the command as few-shot examples.
+- **Evals** (`evals/`): 18 test gists covering coding, writing, study, business, creative, French/Spanish, prompt injection and gibberish, with an automatic grader and an optional LLM judge. Run `python evals/run_evals.py --judge`. See [evals/README.md](evals/README.md).
+
 ## Customize
 
 Edit the `.md` file to change the target length, the sections, or the tone. Both CLIs substitute `$ARGUMENTS` with whatever you type after the command.
