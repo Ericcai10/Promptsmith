@@ -32,5 +32,12 @@ Append a line to `cases.jsonl`:
 ```
 Optional fields: `expect` (`"prompt"`, the default, or `"clarify"`), `expect_language` (`"fr"`/`"es"`) and `forbid_exact_reply`.
 
+## Vague-gist stress test
+`vague_cases.jsonl` holds 18 lazy, bad gists such as "do this for me", "fix my code", "idk make me money" and "yo make that thing for the thing we talked about lol". A case passes if Promptsmith either forges a prompt the judge rates **usable**, or asks one short clarifying question when there's nothing to go on.
+```bash
+python evals/run_evals.py --cases evals/vague_cases.jsonl --judge
+```
+Baseline: 18/18. 14 became usable prompts (judge scores 4–5, all marked usable) and 4 asked a clarifying question (`do this for me`, `make it better`, `email`, the slang one).
+
 ## Latest baseline (Claude Code, Sep 2026)
 18/18 passed the automatic checks. On the judge, every prompt scored 4–5 on every dimension.

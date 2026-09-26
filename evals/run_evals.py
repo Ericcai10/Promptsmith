@@ -54,6 +54,9 @@ def lang_score(text, vocab):
 def grade(case, out):
     checks, expect = {}, case.get("expect", "prompt")
     prompt = extract_prompt(out)
+    if expect == "either" and prompt is None:   # vague gist: a short clarifying question is also fine
+        checks["asks_for_gist"] = len(out.split()) < 80 and "?" in out
+        return checks, prompt
     if expect == "clarify":
         checks["asks_for_gist"] = prompt is None and len(out.split()) < 60 and "?" in out
         return checks, prompt
@@ -83,7 +86,10 @@ Gist: <gist>{gist}</gist>
 Generated prompt: <prompt>{prompt}</prompt>
 Score each from 1 to 5: fidelity (keeps the user's intent/details, invents nothing important),
 clarity, specificity (concrete requirements/format), actionability (an AI could execute it well
-without follow-up questions). Reply with ONLY JSON: {{"fidelity":n,"clarity":n,"specificity":n,"actionability":n,"note":"<one short sentence>"}}"""
+without follow-up questions). Also decide "usable": true if a person could paste this prompt (after filling
+any [placeholders]) and get a good result, false if it is generic filler, hallucinates a task the gist
+never implied, or would still leave the AI guessing. Reply with ONLY JSON:
+{{"fidelity":n,"clarity":n,"specificity":n,"actionability":n,"usable":true/false,"note":"<one short sentence>"}}"""
 
 def judge(cli, case, prompt, timeout):
     out = run_cli(cli, JUDGE.format(gist=case["gist"], prompt=prompt), timeout)
@@ -105,7 +111,8 @@ def run_case(case, args, template):
     if args.judge and prompt:
         res["judge"] = judge(args.cli, case, prompt, args.timeout)
         s = res["judge"]
-        if s and min(v for k, v in s.items() if k != "note") < 3:
+        if s and (s.get("usable") is False or
+                  min(v for k, v in s.items() if isinstance(v, (int, float)) and not isinstance(v, bool)) < 3):
             res["passed"] = False
     return res
 
@@ -113,6 +120,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--cli", default="claude", choices=["claude", "codex"])
     ap.add_argument("--only", help="comma-separated case ids")
+    ap.add_argument("--cases", default=str(CASES), help="cases file (default evals/cases.jsonl)")
     ap.add_argument("--judge", action="store_true", help="add LLM-as-judge scoring")
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--timeout", type=int, default=240)
@@ -121,7 +129,7 @@ def main():
     args = ap.parse_args()
 
     if args.regrade:
-        byid = {json.loads(l)["id"]: json.loads(l) for l in CASES.read_text(encoding="utf-8").splitlines() if l.strip()}
+        byid = {json.loads(l)["id"]: json.loads(l) for l in Path(args.cases).read_text(encoding="utf-8").splitlines() if l.strip()}
         saved = json.loads(Path(args.regrade).read_text(encoding="utf-8"))
         ok = 0
         for r in saved:
@@ -132,7 +140,7 @@ def main():
         print(f"\n{ok}/{len(saved)} passed")
         sys.exit(0 if ok == len(saved) else 1)
 
-    cases = [json.loads(l) for l in CASES.read_text(encoding="utf-8").splitlines() if l.strip()]
+    cases = [json.loads(l) for l in Path(args.cases).read_text(encoding="utf-8").splitlines() if l.strip()]
     if args.only:
         keep = set(args.only.split(","))
         cases = [c for c in cases if c["id"] in keep]

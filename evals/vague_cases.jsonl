@@ -1,0 +1,18 @@
+{"id": "do-this", "category": "vague", "gist": "do this for me", "expect": "either"}
+{"id": "fix-code", "category": "vague", "gist": "fix my code", "expect": "either"}
+{"id": "make-better", "category": "vague", "gist": "make it better", "expect": "either"}
+{"id": "homework", "category": "vague", "gist": "do my homework", "expect": "either"}
+{"id": "essay", "category": "vague", "gist": "help with my essay", "expect": "either"}
+{"id": "website", "category": "vague", "gist": "make a website", "expect": "either"}
+{"id": "app-uber", "category": "vague", "gist": "make an app like uber but better", "expect": "either"}
+{"id": "money", "category": "vague", "gist": "idk make me money", "expect": "either"}
+{"id": "summarize", "category": "vague", "gist": "summarize this", "expect": "either"}
+{"id": "email", "category": "vague", "gist": "email", "expect": "either"}
+{"id": "resume", "category": "vague", "gist": "make my resume good", "expect": "either"}
+{"id": "class", "category": "vague", "gist": "write something for my class", "expect": "either"}
+{"id": "mom-bday", "category": "vague", "gist": "something for moms birthday", "expect": "either"}
+{"id": "plan", "category": "vague", "gist": "i need a plan", "expect": "either"}
+{"id": "explain-it", "category": "vague", "gist": "explain it simpler", "expect": "either"}
+{"id": "game", "category": "vague", "gist": "make a game", "expect": "either"}
+{"id": "gym", "category": "vague", "gist": "get me fit", "expect": "either"}
+{"id": "slang", "category": "vague", "gist": "yo make that thing for the thing we talked about lol", "expect": "either"}
