@@ -68,6 +68,12 @@ Enable it in Claude Code by adding this to `~/.claude/settings.json` (merge it w
   }
 }
 ```
+**Hermes Agent** runs it as a `pre_llm_call` shell hook. Add it, then approve it on first run (or check with `hermes hooks list`):
+```bash
+hermes config set hooks.pre_llm_call '[{"command": "node /path/to/Promptsmith/hooks/promptsmith-auto.mjs", "timeout": 10}]'
+hermes hooks test pre_llm_call   # confirm it fires
+```
+
 Codex CLI uses the same `UserPromptSubmit` shape in `~/.codex/hooks.json`, then `/hooks` to trust it (the Codex side is untested). Set `PROMPTSMITH_AUTO=quiet` to hide the "Read as" line or `off` to disable. Run the unit tests with `node --test hooks/`.
 
 ## Quality

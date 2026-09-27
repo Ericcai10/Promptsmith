@@ -48,6 +48,15 @@ test("quiet mode drops the Read-as line", () => {
   assert.doesNotMatch(buildContext("quiet"), /Read as/);
 });
 
+test("speaks the Hermes pre_llm_call protocol", () => {
+  const call = (user_message) => execFileSync(process.execPath, [HOOK], {
+    input: JSON.stringify({ hook_event_name: "pre_llm_call", extra: { user_message } }),
+  }).toString();
+  assert.match(JSON.parse(call("redesign my home screen")).context, /Promptsmith auto mode/);
+  assert.equal(call("ok do it"), "");
+  assert.equal(call([{ type: "text", text: "describe this image please" }]), "");  // multimodal turn
+});
+
 test("survives garbage stdin", () => {
   const out = execFileSync(process.execPath, [HOOK], { input: "not json" }).toString();
   assert.equal(out, "");

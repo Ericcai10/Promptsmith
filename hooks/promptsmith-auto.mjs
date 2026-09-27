@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Promptsmith auto mode: a UserPromptSubmit hook for Claude Code and Codex CLI.
+// Promptsmith auto mode: a prompt hook for Claude Code and Codex CLI (UserPromptSubmit)
+// and for Hermes Agent (a pre_llm_call shell hook).
 //
 // Neither CLI lets a hook rewrite what the user typed, but both let a hook add
 // hidden context next to it. When a prompt looks like a rough gist, this hook
@@ -60,13 +61,15 @@ export function buildContext(mode) {
 function main() {
   if (MODE === "off") return;
   const input = readInput();
-  if (!shouldEnhance(input.prompt)) return;
-  process.stdout.write(JSON.stringify({
-    hookSpecificOutput: {
-      hookEventName: "UserPromptSubmit",
-      additionalContext: buildContext(MODE),
-    },
-  }));
+  const hermes = input.hook_event_name === "pre_llm_call";
+  // Claude Code / Codex put the text in `prompt`; Hermes puts it in `extra.user_message`
+  // (a list of parts for image turns, which we skip).
+  const prompt = hermes ? input.extra?.user_message : input.prompt;
+  if (typeof prompt !== "string" || !shouldEnhance(prompt)) return;
+  const context = buildContext(MODE);
+  process.stdout.write(JSON.stringify(hermes
+    ? { context }
+    : { hookSpecificOutput: { hookEventName: "UserPromptSubmit", additionalContext: context } }));
 }
 
 if (process.argv[1]?.replace(/\\/g, "/").endsWith("promptsmith-auto.mjs")) {
