@@ -52,6 +52,24 @@ Or copy the file yourself:
 
 Restart the CLI after you install.
 
+## Auto mode (experimental, opt-in)
+
+`hooks/promptsmith-auto.mjs` is a `UserPromptSubmit` hook that improves short, rough messages **without typing a command**. Neither Claude Code nor Codex lets a hook rewrite what you typed, so it adds hidden guidance next to your message instead. The model expands your gist into a clear request, shows a one-line `> ✨ Read as: …`, and then does the work. It skips follow-ups ("ok do it"), slash commands, pasted text and long, detailed prompts. Start a message with `raw:` to skip it once.
+
+**Honest result:** in a blind A/B test on 8 everyday gists (`evals/ab_auto_mode.py`), answers **with** the hook won 3 and answers **without** it won 5. Current models already work out intent from short messages, so the extra guidance mostly changes style, not quality. The `/promptsmith` command is still the reliable way to get a strong, reusable prompt. Try auto mode if you want to see the "Read as" line, but don't expect better answers.
+
+Enable it in Claude Code by adding this to `~/.claude/settings.json` (merge it with any hooks you already have):
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      { "hooks": [ { "type": "command", "command": "node /path/to/Promptsmith/hooks/promptsmith-auto.mjs", "timeout": 10 } ] }
+    ]
+  }
+}
+```
+Codex CLI uses the same `UserPromptSubmit` shape in `~/.codex/hooks.json`, then `/hooks` to trust it (the Codex side is untested). Set `PROMPTSMITH_AUTO=quiet` to hide the "Read as" line or `off` to disable. Run the unit tests with `node --test hooks/`.
+
 ## Quality
 
 - **Gold examples** (`examples/`): hand-written reference prompts. Two are built into the command as few-shot examples.
