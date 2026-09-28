@@ -79,6 +79,7 @@ Codex CLI uses the same `UserPromptSubmit` shape in `~/.codex/hooks.json`, then 
 ## Quality
 
 - **Gold examples** (`examples/`): hand-written reference prompts. Two are built into the command as few-shot examples.
+- **prompts.chat gold set** (`examples/gold/`): the 21 best code, agent and video prompts out of 743 rated from prompts.chat (CC0). Their shared patterns are built into the command.
 - **Evals** (`evals/`): 18 test gists covering coding, writing, study, business, creative, French/Spanish, prompt injection and gibberish, with an automatic grader and an optional LLM judge. Run `python evals/run_evals.py --judge`. See [evals/README.md](evals/README.md).
 
 ## Customize

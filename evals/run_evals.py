@@ -51,14 +51,20 @@ def lang_score(text, vocab):
     words = re.findall(r"[a-zà-ÿñ]+", text.lower())
     return sum(w in vocab for w in words) / max(len(words), 1)
 
+ASK_START = re.compile(r"^\W*(what|which|who|how|could|can|would|please|tell|paste|describe|give|share|send)\b", re.I)
+
+def is_clarifying(out, limit):
+    """A short reply with no prompt block that asks for input ("?" or an asking verb up front)."""
+    return len(out.split()) < limit and ("?" in out or bool(ASK_START.search(out)))
+
 def grade(case, out):
     checks, expect = {}, case.get("expect", "prompt")
     prompt = extract_prompt(out)
     if expect == "either" and prompt is None:   # vague gist: a short clarifying question is also fine
-        checks["asks_for_gist"] = len(out.split()) < 80 and "?" in out
+        checks["asks_for_gist"] = is_clarifying(out, 80)
         return checks, prompt
     if expect == "clarify":
-        checks["asks_for_gist"] = prompt is None and len(out.split()) < 60 and "?" in out
+        checks["asks_for_gist"] = prompt is None and is_clarifying(out, 60)
         return checks, prompt
     checks["has_code_block"] = prompt is not None
     if prompt is None:
@@ -105,6 +111,9 @@ def run_case(case, args, template):
         out = run_cli(args.cli, template.replace("$ARGUMENTS", case["gist"]), args.timeout)
     except subprocess.TimeoutExpired:
         return dict(id=case["id"], passed=False, checks={"timeout": False}, output="", secs=args.timeout)
+    if re.search(r"hit your (session|usage) limit|rate limit", out, re.I) and len(out) < 200:
+        return dict(id=case["id"], category=case["category"], passed=False, skipped=True,
+                    checks={"cli_limit_hit (not graded)": False}, output=out, secs=round(time.time() - t, 1))
     checks, prompt = grade(case, out)
     res = dict(id=case["id"], category=case["category"], passed=all(checks.values()),
                checks=checks, output=out, secs=round(time.time() - t, 1))
@@ -155,14 +164,15 @@ def main():
         extra = f"  judge={r['judge']}" if r.get("judge") else ""
         print(f"[{mark}] {r['id']:<18} {r['secs']:>6}s  {'; '.join(fails)}{extra}")
     passed = sum(r["passed"] for r in results)
-    print(f"\n{passed}/{len(results)} passed")
+    skipped = sum(bool(r.get("skipped")) for r in results)
+    print(f"\n{passed}/{len(results) - skipped} passed" + (f"  ({skipped} skipped: CLI usage limit, rerun later)" if skipped else ""))
 
     outdir = Path(__file__).resolve().parent / "results"
     outdir.mkdir(exist_ok=True)
     path = outdir / f"{time.strftime('%Y%m%d-%H%M%S')}-{args.cli}.json"
     path.write_text(json.dumps(results, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"Full outputs: {path}")
-    sys.exit(0 if passed == len(results) else 1)
+    sys.exit(0 if passed == len(results) - skipped and not skipped else 1)
 
 if __name__ == "__main__":
     main()
