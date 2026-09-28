@@ -6,6 +6,16 @@ Promptsmith is a slash command for **Claude Code** and **OpenAI Codex CLI**. You
 
 No API keys, no dependencies. It's just a prompt file.
 
+## Before / after
+
+Same one-line gist and the same model (Claude Sonnet, one shot, no follow-ups). The left side got the gist as typed. The right side ran `/promptsmith` first and built from the forged prompt. Ratings are 1–10 from the [one-shot UI bench](evals/ONESHOT_FINDINGS.md).
+
+![design a fashion website: before 6/10, after 8/10](docs/before-after-fashion.png)
+![design a portfolio website: before 5/10, after 8/10](docs/before-after-portfolio.png)
+![make me an isolated button: before 3/10, after 8/10](docs/before-after-button.png)
+
+Across 6 UI gists the average went from **5.0 → 7.7**. [How it was measured](evals/ONESHOT_FINDINGS.md).
+
 ## Example
 
 ```
@@ -52,11 +62,11 @@ Or copy the file yourself:
 
 Restart the CLI after you install.
 
-## Auto mode (experimental, opt-in)
+## Auto mode (experimental, off by default, not recommended)
 
 `hooks/promptsmith-auto.mjs` is a `UserPromptSubmit` hook that improves short, rough messages **without typing a command**. Neither Claude Code nor Codex lets a hook rewrite what you typed, so it adds hidden guidance next to your message instead. The model expands your gist into a clear request, shows a one-line `> ✨ Read as: …`, and then does the work. It skips follow-ups ("ok do it"), slash commands, pasted text and long, detailed prompts. Start a message with `raw:` to skip it once.
 
-**Honest result:** in a blind A/B test on 8 everyday gists (`evals/ab_auto_mode.py`), answers **with** the hook won 3 and answers **without** it won 5. Current models already work out intent from short messages, so the extra guidance mostly changes style, not quality. The `/promptsmith` command is still the reliable way to get a strong, reusable prompt. Try auto mode if you want to see the "Read as" line, but don't expect better answers.
+**Honest result: it doesn't help much.** In a blind A/B test on 8 everyday gists (`evals/ab_auto_mode.py`), answers **with** the hook won 3 and answers **without** it won 5. On the one-shot UI bench it moved the average only from 5.0 to 5.3, while `/promptsmith` reached 7.7. Current models already work out intent from short messages, and a short nudge changes the style of an answer but not what gets built. **Use `/promptsmith` instead.** The hook stays in the repo for anyone who wants to experiment.
 
 Enable it in Claude Code by adding this to `~/.claude/settings.json` (merge it with any hooks you already have):
 ```json
